@@ -16,3 +16,22 @@ def num_check(question, error, num_type):
         except ValueError:
             print(error)
             continue
+
+
+# Checks that an answer is yes/no
+def yes_no(question):
+
+    to_check = ["yes", "no"]
+    while True:
+
+        response = input(question).lower()
+
+        # checks that answer is yes/no
+        for var_item in to_check:
+            if response == var_item[0] or response == var_item:
+                return var_item
+
+        print("Please answer yes / no")
+
+
+
