@@ -2,6 +2,7 @@
 import pandas
 import math
 
+
 # Functions go here
 
 
@@ -25,7 +26,6 @@ def num_check(question, error, num_type):
 
 # Checks that an answer is yes/no
 def yes_no(question):
-
     to_check = ["yes", "no"]
     while True:
 
@@ -41,7 +41,6 @@ def yes_no(question):
 
 # checks that user response is not blank
 def not_blank(question, error):
-
     while True:
         response = input(question)
 
@@ -110,30 +109,26 @@ def get_expenses(var_fixed):
 
     # Currency formatting (uses currency function)
     add_dollars = ['Price', 'Cost']
-    for item in add_dollars:
-        expense_frame[item] = expense_frame[item].apply(currency)
+    for var_item in add_dollars:
+        expense_frame[var_item] = expense_frame[var_item].apply(currency)
 
     return [expense_frame, sub_total]
 
 
 # Prints expense frames
 def expense_print(heading, frame, subtotal):
-    print(f"\n**** {heading} Costs ****")
-    print(frame)
-    print(f"\n{heading} Costs: ${subtotal:.2f}")
-    return ""
+    return f"\n--- {heading} Costs ---\n{frame}\n| {heading} Costs Total: ${subtotal:.2f}"
 
 
 # Gets profit goal
 def profit_goal(total_costs):
-
     # Initialise variables and error message
-    error = "Please enter a valid profit goal.\n"
+    error = "Please enter a valid profit goal."
 
     while True:
 
         # Ask for profit goal...
-        response = input("what is your profit goal? (eg $500 or 50%): ")
+        response = input("\nwhat is your profit goal? (eg $500 or 50%): ")
 
         # check if first character is $...
         if response[0] == "$":
@@ -164,7 +159,7 @@ def profit_goal(total_costs):
             continue
 
         if profit_type == "unknown" and amount >= 100:
-            dollar_type = yes_no(f"Did you mean ${amount:.2f}, ie {amount:.2f} dollars? y / n")
+            dollar_type = yes_no(f"Did you mean ${amount:.2f}, ie {amount:.2f} dollars? y / n: ")
 
             # Set profit type based on user answer above
             if dollar_type == "yes":
@@ -173,7 +168,7 @@ def profit_goal(total_costs):
                 profit_type = "%"
 
         elif profit_type == "unknown" and amount < 100:
-            percent_type = yes_no(f"Did you mean {amount}%, ie {amount} percent? y / n")
+            percent_type = yes_no(f"Did you mean {amount}%, ie {amount} percent? y / n: ")
 
             # Set profit type based on user answer above
             if percent_type == "yes":
@@ -183,10 +178,10 @@ def profit_goal(total_costs):
 
         # return profit goal to main routine
         if profit_type == "$":
-            return amount
+            return [amount, profit_type]
         else:
             goal = (amount / 100) * total_costs
-            return goal
+            return [goal, profit_type]
 
 
 # Rounding function
@@ -194,9 +189,39 @@ def round_up(amount, round_to):
     return int(math.ceil(amount / round_to)) * round_to
 
 
+# Shows instructions
+def show_instructions():
+    print('''\n 
+***** Instructions *****
+
+This Program will ask you for...
+- The name of the product that you are selling
+- How many items you plan on selling
+- The costs for each component of the product
+- How much money you want to make
+
+When you have entered all the items, press 'xxx' to quit.
+
+The program will then display an itemised list of the costs
+ with subtotals for the variable and fixed costs.
+Finally it will tell you how much you should sell
+ each item for to reach your profit goal.
+
+The data will also be automatically written to a text file which
+ has the same name as your product
+
+**************************''')
+
+
 # **** Main routine goes here ****
 # Get user data
-product_name = not_blank("Product name: ", "The product name cannot be blank.")
+
+# ask user if they want to see the instructions
+want_instructions = yes_no("Do you want to see the instructions for this program?: ")
+if want_instructions == "yes":
+    show_instructions()
+
+product_name = not_blank("\nProduct name: ", "The product name cannot be blank.")
 how_many = num_check("How many items will you be producing?: ", "The number of items should be a whole number more "
                                                                 "than 0", int)
 
@@ -233,17 +258,30 @@ while True:
 
         fixed_frame = fixed_expenses[0]
         fixed_sub = fixed_expenses[1]
+
+        break
     else:
         fixed_sub = 0
         fixed_frame = ""
-
+        break
 
 # Find total costs and profit target
 all_costs = variable_sub + fixed_sub
 profit_target = profit_goal(all_costs)
 
+# Calc total sales needed to reach goal
+sales_needed = all_costs + profit_target[0]
+
+# Ask user for rounding
+to_round = num_check("Round to nearest...?: ", "Must be a whole number more than 0.", int)
+
 # Calculate recommended price
-selling_price = 0
+selling_price = sales_needed / how_many
+print(f"Selling Price (unrounded): ${selling_price:.2f}")
+
+if profit_target[1] == "%":
+    profit_target = round_up(sales_needed, to_round)
+recommended_price = round_up(selling_price, to_round)
 
 # Write data to file
 
@@ -251,15 +289,41 @@ selling_price = 0
 
 print(f"\n**** Fund Raising - {product_name} *****")
 
-expense_print("Variable", variable_frame, variable_sub)
+total_expenses = f"Total Expenses: ${all_costs:.2f}"
 
-if have_fixed == "yes":
-    expense_print("Fixed", fixed_frame[['Cost']], fixed_sub)
+profit_target = f"**** Profit & Sales Targets ****\nProfit Target: ${profit_target[1]:.2f}"
 
-    print(f"\nTotal Expenses: ${all_costs}\n")
+pricing = f"**** Pricing ****\nMinimum Price: ${selling_price:.2f}\n" \
+          f"Recommended Price: ${recommended_price:.2f}"
 
-    print("\n**** Profit & Sales Targets ****")
-    print(f"Profit Target: ${profit_target:.2f}")
-    print(f"Total Sales: ${(all_costs + profit_target):.2f}")
+# Write to file...
 
-    print(f"\n**** Recommended Selling Price: {selling_price:.2f}")
+# Create file to hold data (add .txt extension)
+file_name = f"{product_name}.txt"
+text_file = open(file_name, "w+")
+
+# Change frames to strings
+variable_txt = expense_print("Variable", variable_frame, variable_sub)
+
+
+if have_fixed == "no":
+    fixed_txt = ""
+else:
+    fixed_txt = expense_print("Fixed", fixed_frame[['Cost']], fixed_sub)
+
+to_write = [variable_txt, fixed_txt, total_expenses,
+            profit_target, pricing]
+
+# heading
+for item in to_write:
+    item = str(item)
+    text_file.write(item)
+    text_file.write("\n\n")
+
+# close file
+text_file.close()
+
+# Print stuff
+for item in to_write:
+    print(item)
+    print()
