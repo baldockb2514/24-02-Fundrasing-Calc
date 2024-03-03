@@ -279,11 +279,13 @@ to_round = num_check("Round to nearest...?: ", "Must be a whole number more than
 # Calculate recommended price
 selling_price = sales_needed / how_many
 
+# if the profit goal is a %, convert to dollar amount and round
 if profit_target[1] == "%":
     profit_target = round_up(sales_needed, to_round)
+# if dollar amount, round
 else:
-    profit_target = profit_target[0]
-    profit_target = round_up(profit_target, to_round)
+    profit_target = round_up(profit_target[0], to_round)
+
 recommended_price = round_up(selling_price, to_round)
 
 # Write data to file
@@ -312,7 +314,7 @@ pricing = f"**** Pricing ****\nMinimum Price: ${selling_price:.2f}\n" \
 # Write to file...
 
 # Create file to hold data (add .txt extension)
-file_name = f"{product_name}.txt"
+file_name = f"{product_name}_{year}_{month}_{day}.txt"
 text_file = open(file_name, "w+")
 
 # Change frames to strings
