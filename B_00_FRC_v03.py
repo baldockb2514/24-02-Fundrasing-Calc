@@ -117,7 +117,7 @@ def get_expenses(var_fixed):
 
 # Prints expense frames
 def expense_print(heading, frame, subtotal):
-    return f"\n--- {heading} Costs ---\n{frame}\n| {heading} Costs Total: ${subtotal:.2f}"
+    return f"--- {heading} Costs ---\n{frame}\n| {heading} Costs Total: ${subtotal:.2f}"
 
 
 # Gets profit goal
@@ -277,21 +277,23 @@ to_round = num_check("Round to nearest...?: ", "Must be a whole number more than
 
 # Calculate recommended price
 selling_price = sales_needed / how_many
-print(f"Selling Price (unrounded): ${selling_price:.2f}")
 
 if profit_target[1] == "%":
     profit_target = round_up(sales_needed, to_round)
+else:
+    profit_target = profit_target[0]
+    profit_target = round_up(profit_target, to_round)
 recommended_price = round_up(selling_price, to_round)
 
 # Write data to file
 
 # *** Printing area ***
 
-print(f"\n**** Fund Raising - {product_name} *****")
+print(f"\n**** Fund Raising - {product_name} *****\n")
 
 total_expenses = f"Total Expenses: ${all_costs:.2f}"
 
-profit_target = f"**** Profit & Sales Targets ****\nProfit Target: ${profit_target[1]:.2f}"
+profit_target = f"**** Profit & Sales Targets ****\nProfit Target: ${profit_target:.2f}"
 
 pricing = f"**** Pricing ****\nMinimum Price: ${selling_price:.2f}\n" \
           f"Recommended Price: ${recommended_price:.2f}"
